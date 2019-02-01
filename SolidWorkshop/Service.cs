@@ -1,56 +1,63 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data.SqlClient;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace SolidWorkshop
+﻿namespace SolidWorkshop
 {
+    using System;
+    using System.Collections.Generic;
+
+    /// <summary>
+    /// Provides methods to save and read <see cref="Entity"/>
+    /// </summary>
     public class Service
     {
-        private const string _connectionString = "[connectionString]";
-        protected readonly SqlConnection _sqlConnection;
+        private readonly IRepository<Entity> entityRepository;
 
-        public Service()
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Service"/> class.  
+        /// </summary>
+        /// <param name="repository">
+        /// An <see cref="IRepository{Entity}"/> to store entities.
+        /// </param>
+        public Service(IRepository<Entity> repository)
         {
-            //_sqlConnection = new SqlConnection(_connectionString);
+            this.entityRepository = repository ?? throw new ArgumentNullException(nameof(repository), "Null repository.");
         }
 
+        /// <summary>
+        /// Saves an entity to the repository.
+        /// </summary>
+        /// <param name="entity">An <see cref="Entity"/>.</param>
+        /// <returns>An <see cref="Entity"/>.</returns>
         public Entity Save(Entity entity)
         {
+            if (entity == null)
+            {
+                throw new ArgumentNullException(nameof(entity), "Null entity.");
+            }
+
             try
             {
-                for (int i = 0; i < 3; i++)
-                {
-                    try
-                    {
-                        _sqlConnection.Open();
-                        //perform Save
-                        _sqlConnection.Close();
-                        return entity;
-                    }
-                    catch
-                    {
-                        if (i == 2)
-                            throw;
-                    }
-                }
-                throw new Exception("Ex");
+                this.entityRepository.Save(entity);
+                return entity;
             }
             catch (Exception e)
             {
-                throw e;
+                throw new Exception("An error occured while saving.", e);
             }
         }
 
-        public List<Entity> ReadAll()
+        /// <summary>
+        /// Reads all entities from the repository.
+        /// </summary>
+        /// <returns>An <see cref="IEnumerable{Entity}"/></returns>
+        public IEnumerable<Entity> ReadAll()
         {
-            _sqlConnection.Open();
-            //perform Save
-            _sqlConnection.Close();
-            return new List<Entity>();
+            try
+            {
+                return this.entityRepository.ReadAll();
+            }
+            catch (Exception e)
+            {
+                throw new Exception("An error occured while retrieving items.", e);
+            }
         }
-
     }
 }
